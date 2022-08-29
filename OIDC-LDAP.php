@@ -12,7 +12,7 @@ class DefaultAuthMiddleware extends AuthMiddleware
 {
 	public function Login(string $username)
 	{
-
+		$user = null;
 		if ($connect = ldap_connect(GROCY_LDAP_ADDRESS)) {
 			ldap_set_option($connect, LDAP_OPT_PROTOCOL_VERSION, 3);
 			ldap_set_option($connect, LDAP_OPT_REFERRALS, 0);
@@ -40,14 +40,13 @@ class DefaultAuthMiddleware extends AuthMiddleware
 
 				if (is_null($ldapDistinguishedName)) {
 					// User not found
-					return false;
+					return $user;
 				}
 			} else {
 				// Bind authentication failed
-				return false;
+				return $user;
 				ldap_close($connect);
 			}
-			$user = null;
 			$db = DatabaseService::getInstance()->GetDbConnection();
 			$user = $db->users()->where('username', $ldapUidAttribute)->fetch();
 			if ($user == null) {
@@ -85,17 +84,14 @@ class DefaultAuthMiddleware extends AuthMiddleware
 		}
 
 		$oidc = new OpenIDConnectClient('http://localhost:1234/auth/realms/testing', 'testing', 'Y36ox283sqBwcf7trVVXBgYgUV5AylB8');
-		error_log("running authenticate");
 		$oidc->authenticate();
-		error_log("finished authenticate");
-		$oidcname = $oidc->requestUserInfo('given_name');
-		error_log("displaying given name");
-		error_log($oidcname);
+		$oidcname = $oidc->requestUserInfo('given_name'); //	replace with config variable
 		$db = DatabaseService::getInstance()->GetDbConnection();
 		return $this->Login($oidcname);
 
 		return $user;
 	}
+
 	public static function ProcessLogin(array $postParams)
 	{
 		throw new \Exception('Not implemented');
