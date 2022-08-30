@@ -83,9 +83,11 @@ class DefaultAuthMiddleware extends AuthMiddleware
 			return $user;
 		}
 
+		//	in this case I'm using keycloak and the .wellknown config will be discovered from this
 		$oidc = new OpenIDConnectClient('http://localhost:1234/auth/realms/testing', 'testing', 'Y36ox283sqBwcf7trVVXBgYgUV5AylB8');
 		$oidc->authenticate();
-		$oidcname = $oidc->requestUserInfo('given_name'); //	replace with config variable
+		//	the user info to be matched with ldap server
+		$oidcname = $oidc->requestUserInfo('given_name'); //	this should be replaced with config variable
 		$db = DatabaseService::getInstance()->GetDbConnection();
 		return $this->Login($oidcname);
 
